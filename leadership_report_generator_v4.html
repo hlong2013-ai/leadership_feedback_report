@@ -1,0 +1,1783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Crescent 360° Feedback Report Generator</title>
+<style id="report-styles">
+  :root {
+    --crescent-blue: #002856;
+    --electric-yellow: #EEE809;
+    --light-blue: #3C6FA9;
+    --pale-blue: #E6EEF7;
+    --very-pale-blue: #F4F8FC;
+    --gold: #C9A700;
+    --gray-900: #1C1C1C;
+    --gray-700: #4A4A4A;
+    --gray-500: #888888;
+    --gray-300: #C8C8C8;
+    --gray-200: #E0E0E0;
+    --gray-100: #F2F2F2;
+    --gray-50: #FAFAFA;
+    --white: #FFFFFF;
+    --black: #000000;
+    --accent-positive: #1B7575;
+    --accent-positive-bg: #DCEEEE;
+    --accent-warn: #C9A700;
+    --accent-warn-bg: #FBF3D5;
+    --accent-attention: #B33B00;
+    --accent-attention-bg: #FBE4D6;
+    --likert-1: #002856;
+    --likert-2: #5B89BD;
+    --likert-3: #B8BABC;
+    --likert-4: #C9A700;
+    --likert-5: #EEE809;
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    font-family: "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    background: var(--gray-100);
+    color: var(--gray-900);
+    line-height: 1.45;
+    font-size: 14px;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  body.report-only { background: var(--gray-100); }
+
+  .app-shell {
+    max-width: 1220px;
+    margin: 0 auto;
+    padding: 22px;
+  }
+
+  .app-hero {
+    background: linear-gradient(135deg, var(--crescent-blue), #001A3A);
+    color: var(--white);
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 14px 40px rgba(0,40,86,.18);
+    margin-bottom: 18px;
+  }
+  .app-hero .yellow-bar { height: 7px; background: var(--electric-yellow); }
+  .app-hero-inner { padding: 24px 28px 26px; }
+  .app-eyebrow {
+    color: var(--electric-yellow);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-size: 12px;
+    font-weight: 800;
+    margin-bottom: 6px;
+  }
+  .app-hero h1 { margin: 0; font-size: 30px; line-height: 1.1; }
+  .app-hero p { max-width: 900px; margin: 8px 0 0; color: rgba(255,255,255,.84); }
+
+  .generator-grid {
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    gap: 18px;
+    align-items: start;
+  }
+  .left-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .learning-path-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .learning-path-list .field {
+    margin-bottom: 0;
+  }
+  .learning-path-list input {
+    font-size: 12.5px;
+    padding: 8px 10px;
+  }
+  .learning-path-entry {
+    border: 1px solid var(--gray-200);
+    border-radius: 10px;
+    padding: 10px;
+    background: var(--gray-50);
+  }
+  .learning-path-entry label {
+    color: var(--crescent-blue);
+    margin-bottom: 7px;
+  }
+  .learning-path-pair {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+  .learning-path-sub-label {
+    display: block;
+    font-size: 9.5px;
+    color: var(--gray-500);
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: .55px;
+    margin: 0 0 3px 2px;
+  }
+  .competency-description-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .competency-description-card {
+    border: 1px solid var(--gray-200);
+    border-left: 4px solid var(--light-blue);
+    background: var(--gray-50);
+    border-radius: 6px;
+    padding: 9px 11px;
+  }
+  .competency-description-card .name {
+    color: var(--crescent-blue);
+    font-size: 12px;
+    font-weight: 900;
+    margin-bottom: 3px;
+  }
+  .competency-description-card .definition {
+    color: var(--gray-700);
+    font-size: 11.5px;
+    line-height: 1.35;
+  }
+  .panel {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: 14px;
+    box-shadow: 0 7px 24px rgba(0,40,86,.08);
+    overflow: hidden;
+  }
+  .panel-header {
+    background: var(--crescent-blue);
+    color: var(--white);
+    padding: 12px 16px;
+    font-weight: 800;
+    letter-spacing: .3px;
+  }
+  .panel-body { padding: 16px; }
+  .field { margin-bottom: 12px; }
+  .field label {
+    display: block;
+    font-size: 11px;
+    color: var(--gray-700);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .55px;
+    margin-bottom: 5px;
+  }
+  input, select, textarea {
+    width: 100%;
+    border: 1px solid var(--gray-300);
+    border-radius: 9px;
+    padding: 10px 11px;
+    font: inherit;
+    background: var(--white);
+    color: var(--gray-900);
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: 3px solid rgba(238,232,9,.32);
+    border-color: var(--crescent-blue);
+  }
+  textarea {
+    min-height: 430px;
+    resize: vertical;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 12px;
+    line-height: 20px;
+    white-space: pre;
+  }
+  .paste-layout {
+    display: grid;
+    grid-template-columns: 150px minmax(0, 1fr);
+    gap: 10px;
+    align-items: stretch;
+  }
+  .rater-static-list {
+    border: 1px solid var(--gray-300);
+    border-radius: 9px;
+    background: var(--very-pale-blue);
+    overflow: hidden;
+    min-height: 430px;
+  }
+  .rater-static-header, .paste-column-label {
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: .55px;
+  }
+  .rater-static-header {
+    background: var(--crescent-blue);
+    color: var(--white);
+    padding: 10px 11px;
+  }
+  .rater-static-row {
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+    padding: 7px 10px;
+    border-bottom: 1px solid var(--gray-200);
+    color: var(--crescent-blue);
+    font-weight: 800;
+    font-size: 12px;
+  }
+  .rater-static-row .row-num {
+    color: var(--gray-500);
+    font-weight: 800;
+    margin-right: 6px;
+    min-width: 22px;
+  }
+  .rater-static-note {
+    padding: 10px;
+    font-size: 11px;
+    color: var(--gray-700);
+    line-height: 1.35;
+  }
+  .paste-column-label {
+    color: var(--crescent-blue);
+    margin: 0 0 5px 2px;
+  }
+  .hint {
+    color: var(--gray-700);
+    font-size: 12px;
+    background: var(--very-pale-blue);
+    border-left: 4px solid var(--light-blue);
+    padding: 10px 12px;
+    border-radius: 0 8px 8px 0;
+    margin: 0 0 14px;
+  }
+  .tiny-note { font-size: 11px; color: var(--gray-500); margin-top: 5px; }
+  .button-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  button {
+    border: 0;
+    border-radius: 999px;
+    padding: 10px 14px;
+    font-weight: 800;
+    cursor: pointer;
+    font: inherit;
+    transition: transform .1s ease, box-shadow .1s ease, opacity .1s ease;
+  }
+  button:hover { transform: translateY(-1px); box-shadow: 0 7px 14px rgba(0,40,86,.14); }
+  button:active { transform: translateY(0); box-shadow: none; }
+  .btn-primary { background: var(--crescent-blue); color: var(--white); }
+  .btn-yellow { background: var(--electric-yellow); color: var(--crescent-blue); }
+  .btn-secondary { background: var(--pale-blue); color: var(--crescent-blue); }
+  .btn-quiet { background: var(--gray-100); color: var(--gray-700); }
+  .btn-danger { background: var(--accent-attention-bg); color: var(--accent-attention); }
+  .btn-disabled, button:disabled { opacity: .45; cursor: not-allowed; transform: none; box-shadow: none; }
+
+  .status-box {
+    display: none;
+    padding: 12px 14px;
+    border-radius: 10px;
+    margin-top: 12px;
+    font-size: 12.5px;
+  }
+  .status-box.show { display: block; }
+  .status-ok { background: var(--accent-positive-bg); color: var(--accent-positive); border: 1px solid var(--accent-positive); }
+  .status-warn { background: var(--accent-warn-bg); color: #6E5700; border: 1px solid var(--accent-warn); }
+  .status-error { background: var(--accent-attention-bg); color: var(--accent-attention); border: 1px solid var(--accent-attention); }
+  .status-box ul { margin: 6px 0 0 18px; padding: 0; }
+
+  .report-toolbar {
+    display: none;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(250,250,250,.94);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--gray-200);
+    border-radius: 14px;
+    margin: 18px 0;
+    padding: 12px;
+    box-shadow: 0 7px 24px rgba(0,40,86,.08);
+  }
+  .report-toolbar.show { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .toolbar-title { color: var(--crescent-blue); font-weight: 900; }
+  .toolbar-sub { font-size: 12px; color: var(--gray-700); font-weight: 500; }
+
+  .report-container { display: none; }
+  .report-container.show { display: block; }
+
+  .sheet {
+    background: var(--white);
+    width: 1000px;
+    min-height: 1200px;
+    margin: 0 auto 40px auto;
+    box-shadow: 0 4px 18px rgba(0,40,86,0.10);
+    border: 1px solid var(--gray-200);
+    position: relative;
+    overflow: hidden;
+    page-break-after: always;
+  }
+  .sheet.compact { min-height: 0; }
+  /* Page labels were useful while prototyping, but they take up space in leader-facing PDFs. */
+  .sheet-tab { display: none !important; }
+  .sheet-body { padding: 28px 36px 36px 36px; }
+  .section-header {
+    background: var(--crescent-blue);
+    color: var(--white);
+    font-weight: 800;
+    padding: 9px 14px;
+    font-size: 13px;
+    letter-spacing: 0.3px;
+    border-radius: 2px;
+    margin: 18px 0 10px 0;
+  }
+  .section-header.first { margin-top: 0; }
+  .sub-header {
+    background: var(--pale-blue);
+    color: var(--crescent-blue);
+    font-weight: 800;
+    padding: 7px 14px;
+    font-size: 12.5px;
+    border-left: 4px solid var(--light-blue);
+    margin: 14px 0 8px 0;
+  }
+  .lead-paragraph {
+    background: var(--very-pale-blue);
+    border-left: 4px solid var(--light-blue);
+    padding: 14px 18px;
+    margin: 0 0 18px 0;
+    font-size: 13px;
+    color: var(--gray-700);
+  }
+
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  th, td { padding: 7px 10px; text-align: left; border-bottom: 1px solid var(--gray-200); vertical-align: middle; }
+  th { background: var(--very-pale-blue); color: var(--crescent-blue); font-weight: 800; border-bottom: 2px solid var(--light-blue); }
+  table.striped tbody tr:nth-child(even) { background: var(--gray-50); }
+  td.num, th.num { font-variant-numeric: tabular-nums; text-align: center; font-weight: 700; }
+
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+    border: 1px solid transparent;
+    white-space: nowrap;
+  }
+  .badge-strength { background: var(--accent-positive-bg); color: var(--accent-positive); border-color: var(--accent-positive); }
+  .badge-developing, .badge-watch { background: var(--accent-warn-bg); color: #7A6100; border-color: var(--accent-warn); }
+  .badge-focus, .badge-blindspot { background: var(--accent-attention-bg); color: var(--accent-attention); border-color: var(--accent-attention); }
+  .badge-aligned { background: var(--pale-blue); color: var(--crescent-blue); border-color: var(--light-blue); }
+  .badge-hidden { background: var(--accent-positive-bg); color: var(--accent-positive); border-color: var(--accent-positive); }
+  .badge-na { background: var(--gray-100); color: var(--gray-700); border-color: var(--gray-300); }
+
+  .cover {
+    height: 1200px;
+    padding: 0;
+    position: relative;
+    background: linear-gradient(180deg, var(--crescent-blue) 0%, var(--crescent-blue) 62%, #001A3A 100%);
+    color: var(--white);
+    display: flex;
+    flex-direction: column;
+  }
+  .cover-yellow-bar { height: 8px; background: var(--electric-yellow); }
+  .cover-top { padding: 62px 60px 30px 60px; }
+  .cover-program { color: var(--electric-yellow); font-size: 14px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px; }
+  .cover h1 { font-size: 58px; margin: 0 0 8px 0; font-weight: 900; letter-spacing: -1px; line-height: 1.05; }
+  .cover h2 { font-size: 22px; margin: 0; font-weight: 400; color: rgba(255,255,255,0.86); }
+  .cover-divider { margin: 40px 60px; height: 2px; background: rgba(255,255,255,0.22); }
+  .cover-participant { padding: 0 60px; flex: 1; }
+  .cover-participant .label { font-size: 11px; color: var(--electric-yellow); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 6px; }
+  .cover-participant .name { font-size: 42px; font-weight: 800; margin: 0 0 4px 0; }
+  .cover-participant .title { font-size: 18px; font-weight: 300; color: rgba(255,255,255,0.85); margin: 0; }
+  .cover-info-grid { margin-top: 50px; display: grid; grid-template-columns: 1fr 1fr; gap: 30px 50px; }
+  .cover-info-grid h3, .cover-rating-scale h3 { font-size: 11px; color: var(--electric-yellow); letter-spacing: 1.5px; text-transform: uppercase; margin: 0 0 8px 0; font-weight: 800; }
+  .cover-info-grid p { margin: 0; font-size: 16px; font-weight: 300; }
+  .cover-rating-scale { margin: 50px 60px 0 60px; background: rgba(255,255,255,0.08); border-left: 4px solid var(--electric-yellow); padding: 18px 22px; }
+  .cover-rating-scale .scale-row { display: grid; grid-template-columns: 36px 200px 1fr; align-items: center; gap: 12px; padding: 6px 0; font-size: 13px; border-bottom: 1px dashed rgba(255,255,255,0.15); }
+  .cover-rating-scale .scale-row:last-child { border-bottom: none; }
+  .cover-rating-scale .num { width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px; color: var(--white); }
+  .cover-rating-scale .num.n1 { background: var(--likert-1); border: 1px solid rgba(255,255,255,0.4); }
+  .cover-rating-scale .num.n2 { background: var(--likert-2); }
+  .cover-rating-scale .num.n3 { background: var(--likert-3); color: var(--gray-900); }
+  .cover-rating-scale .num.n4 { background: var(--likert-4); color: var(--gray-900); }
+  .cover-rating-scale .num.n5 { background: var(--likert-5); color: var(--gray-900); }
+  .cover-rating-scale .label-name { font-weight: 800; }
+  .cover-footer { padding: 30px 60px; background: var(--black); color: var(--gray-300); font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; text-align: center; }
+
+  .classification-grid, .journey { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 12px 0 22px 0; }
+  .class-card { border: 1px solid var(--gray-200); border-top: 4px solid; padding: 14px 16px; background: var(--white); }
+  .class-card.strength { border-top-color: var(--accent-positive); }
+  .class-card.developing { border-top-color: var(--accent-warn); }
+  .class-card.focus { border-top-color: var(--accent-attention); }
+  .class-card h4 { margin: 0 0 4px 0; font-size: 14px; color: var(--crescent-blue); }
+  .class-card .threshold { font-size: 11px; color: var(--gray-500); margin-bottom: 10px; font-weight: 700; letter-spacing: 0.3px; }
+  .class-card p { margin: 0 0 6px 0; font-size: 12px; color: var(--gray-700); }
+  .journey-step { background: var(--very-pale-blue); padding: 12px 16px; border-radius: 4px; border-left: 4px solid var(--crescent-blue); }
+  .journey-step .num { color: var(--crescent-blue); font-weight: 900; font-size: 11px; letter-spacing: 1px; margin-bottom: 4px; }
+  .journey-step .text { font-size: 12.5px; color: var(--gray-700); }
+  .gap-formula { background: var(--crescent-blue); color: var(--electric-yellow); padding: 14px 18px; text-align: center; font-size: 16px; font-weight: 900; margin: 10px 0 16px 0; letter-spacing: 0.5px; border-radius: 2px; }
+
+  .avg-boxes { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin: 6px 0 22px 0; }
+  .avg-box { background: var(--white); border: 1px solid var(--gray-200); border-top: 4px solid var(--crescent-blue); padding: 13px 12px; text-align: center; }
+  .avg-box.overall { border-top-color: var(--electric-yellow); background: var(--very-pale-blue); }
+  .avg-box .label { font-size: 10px; color: var(--gray-700); text-transform: uppercase; letter-spacing: .8px; font-weight: 800; min-height: 28px; }
+  .avg-box .value { font-size: 34px; font-weight: 900; color: var(--crescent-blue); margin-top: 4px; line-height: 1; }
+  .avg-box .value-suffix { font-size: 13px; font-weight: 500; color: var(--gray-500); }
+
+  .quick-view-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin: 10px 0 18px; }
+  .chart-card { border: 1px solid var(--gray-200); background: var(--white); border-radius: 4px; padding: 14px; }
+  .chart-title { color: var(--crescent-blue); font-weight: 900; font-size: 13px; margin-bottom: 6px; }
+  .chart-note { color: var(--gray-700); font-size: 11.5px; margin-bottom: 8px; }
+  .bar-row { display: grid; grid-template-columns: 138px 1fr 38px; gap: 8px; align-items: center; margin: 6px 0; }
+  .bar-label { font-size: 10.5px; color: var(--gray-700); font-weight: 700; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .bar-track { height: 13px; background: var(--gray-200); border-radius: 2px; overflow: hidden; position: relative; }
+  .bar-fill { height: 100%; background: var(--light-blue); }
+  .bar-value { text-align: right; font-size: 11px; font-weight: 800; color: var(--crescent-blue); font-variant-numeric: tabular-nums; }
+  .legend-inline { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; font-size: 11px; color: var(--gray-700); margin: 8px 0; }
+  .legend-inline .key { display: flex; gap: 5px; align-items: center; }
+  .legend-inline .dot, .comp-legend .dot { width: 12px; height: 12px; border-radius: 2px; display: inline-block; }
+
+  .priority-card { border: 1px solid var(--gray-200); margin-bottom: 12px; background: var(--white); }
+  .priority-header { background: var(--crescent-blue); color: var(--white); padding: 8px 14px; display: flex; align-items: center; gap: 14px; }
+  .priority-header .num { background: var(--electric-yellow); color: var(--crescent-blue); width: 26px; height: 26px; border-radius: 13px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 14px; }
+  .priority-header .label { font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.75); }
+  .priority-header .name { font-size: 14px; font-weight: 800; margin-left: auto; }
+  .priority-body { padding: 12px 14px; display: grid; grid-template-columns: 1.35fr 0.9fr 1fr; gap: 16px; font-size: 12.5px; }
+  .priority-body .col-label { font-size: 10px; text-transform: uppercase; color: var(--gray-500); letter-spacing: 0.6px; font-weight: 900; margin-bottom: 4px; }
+  .priority-body .definition { color: var(--gray-700); font-style: italic; }
+  .priority-body .scores { line-height: 1.8; }
+  .priority-body .scores .lbl { display: inline-block; width: 90px; color: var(--gray-700); font-size: 11.5px; }
+  .priority-body .scores .val { font-weight: 900; color: var(--crescent-blue); }
+  .priority-body .lp { background: var(--very-pale-blue); border-left: 3px solid var(--light-blue); padding: 8px 10px; font-size: 12px; color: var(--crescent-blue); font-weight: 700; }
+  .priority-body .lp a { color: var(--crescent-blue); font-weight: 900; text-decoration: underline; text-underline-offset: 2px; }
+  .priority-body .lp a::after { content: " ↗"; font-size: 10px; }
+
+  .condensed-summary-page .sheet-body { padding: 24px 30px 28px; }
+  .condensed-summary-page .avg-boxes { margin-bottom: 14px; gap: 9px; }
+  .condensed-summary-page .avg-box { padding: 10px 8px; }
+  .condensed-summary-page .avg-box .label { font-size: 9px; min-height: 22px; }
+  .condensed-summary-page .avg-box .value { font-size: 28px; }
+  .condensed-summary-page table { font-size: 10.8px; }
+  .condensed-summary-page th, .condensed-summary-page td { padding: 4px 5px; }
+  .condensed-summary-page .sub-header { margin: 12px 0 6px; padding: 6px 10px; }
+  .condensed-summary-page .lead-paragraph { margin-bottom: 10px; padding: 10px 12px; font-size: 11.5px; }
+  .condensed-priorities { display: grid; grid-template-columns: 1fr; gap: 7px; }
+  .condensed-priorities .priority-card { margin-bottom: 0; }
+  .condensed-priorities .priority-header { padding: 6px 10px; gap: 10px; }
+  .condensed-priorities .priority-header .num { width: 22px; height: 22px; font-size: 12px; }
+  .condensed-priorities .priority-header .label { font-size: 9px; }
+  .condensed-priorities .priority-header .name { font-size: 12.5px; }
+  .condensed-priorities .priority-body { padding: 8px 10px; grid-template-columns: 1.2fr .85fr 1fr; gap: 10px; font-size: 10.8px; }
+  .condensed-priorities .priority-body .scores { line-height: 1.45; }
+  .condensed-priorities .priority-body .scores .lbl { width: 68px; font-size: 10px; }
+  .condensed-priorities .priority-body .lp { padding: 6px 8px; font-size: 10.5px; }
+
+  .stack-legend { display: flex; flex-wrap: wrap; gap: 12px 18px; margin: 4px 0 14px 0; align-items: center; font-size: 11px; color: var(--gray-700); background: var(--gray-50); padding: 8px 12px; border-radius: 3px; border: 1px solid var(--gray-200); }
+  .stack-legend .key { display: flex; align-items: center; gap: 6px; }
+  .stack-legend .swatch { width: 16px; height: 14px; border-radius: 2px; border: 1px solid rgba(0,0,0,0.08); }
+  .stack-row { display: grid; grid-template-columns: 54px 1fr 370px 64px; gap: 12px; align-items: center; margin: 6px 0; padding: 6px 0; border-bottom: 1px dashed var(--gray-200); }
+  .stack-row:last-child { border-bottom: none; }
+  .stack-q { font-weight: 800; color: var(--crescent-blue); font-size: 12px; text-align: center; }
+  .stack-q .self-tag { display: block; font-size: 9px; font-weight: 700; color: var(--gray-700); background: var(--gray-200); padding: 1px 4px; border-radius: 2px; margin-top: 2px; }
+  .stack-text { font-size: 12px; color: var(--gray-700); line-height: 1.35; }
+  .stack-bar { display: flex; height: 22px; border-radius: 2px; overflow: hidden; border: 1px solid var(--gray-300); background: var(--gray-100); }
+  .stack-bar .seg { height: 100%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 900; color: var(--white); min-width: 0; overflow: hidden; }
+  .stack-bar .seg.s3, .stack-bar .seg.s4, .stack-bar .seg.s5 { color: var(--gray-900); }
+  .stack-bar .seg.s1 { background: var(--likert-1); }
+  .stack-bar .seg.s2 { background: var(--likert-2); }
+  .stack-bar .seg.s3 { background: var(--likert-3); }
+  .stack-bar .seg.s4 { background: var(--likert-4); }
+  .stack-bar .seg.s5 { background: var(--likert-5); }
+  .stack-meta { font-size: 10.5px; color: var(--gray-700); text-align: right; }
+
+  .comp-summary { display: grid; grid-template-columns: 1.4fr 1fr; gap: 18px; margin: 12px 0 18px 0; }
+  .comp-explainer { background: var(--very-pale-blue); padding: 14px 18px; border-radius: 3px; border-left: 4px solid var(--light-blue); font-size: 12.5px; color: var(--gray-700); }
+  .comp-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .comp-stat { background: var(--white); border: 1px solid var(--gray-200); padding: 10px 12px; text-align: center; }
+  .comp-stat .label { font-size: 10px; text-transform: uppercase; letter-spacing: .7px; color: var(--gray-500); font-weight: 900; }
+  .comp-stat .value { font-size: 24px; font-weight: 900; color: var(--crescent-blue); margin-top: 2px; }
+  .comp-rating-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin: 0 0 16px 0; }
+  .comp-rating-card { background: var(--white); border: 1px solid var(--gray-200); padding: 12px 16px; border-left: 5px solid var(--light-blue); }
+  .comp-rating-card.r-strength { border-left-color: var(--accent-positive); }
+  .comp-rating-card.r-developing { border-left-color: var(--accent-warn); }
+  .comp-rating-card.r-focus { border-left-color: var(--accent-attention); }
+  .comp-rating-card.gap-blindspot { border-left-color: var(--accent-attention); }
+  .comp-rating-card.gap-watch { border-left-color: var(--accent-warn); }
+  .comp-rating-card.gap-aligned { border-left-color: var(--light-blue); }
+  .comp-rating-card.gap-hidden { border-left-color: var(--accent-positive); }
+  .comp-rating-card .label { font-size: 10px; color: var(--gray-500); text-transform: uppercase; letter-spacing: .7px; font-weight: 900; }
+  .comp-rating-card .value { font-size: 16px; font-weight: 900; color: var(--crescent-blue); margin-top: 4px; }
+  .qbar-block { margin: 10px 0 4px 0; background: var(--gray-50); padding: 12px 14px; border-radius: 3px; border: 1px solid var(--gray-200); }
+  .qbar-question { font-size: 12.5px; color: var(--gray-900); margin-bottom: 8px; font-weight: 700; }
+  .qbar-question .qnum { color: var(--crescent-blue); font-weight: 900; margin-right: 6px; }
+  .qbar-row { display: grid; grid-template-columns: 96px 1fr 42px; gap: 10px; align-items: center; margin: 4px 0; }
+  .qbar-label { font-size: 11.5px; color: var(--gray-700); font-weight: 700; }
+  .qbar-track { background: var(--gray-200); height: 14px; border-radius: 2px; position: relative; overflow: hidden; }
+  .qbar-track .axis-tick { position: absolute; top: 0; bottom: 0; width: 1px; background: rgba(0,0,0,0.06); }
+  .qbar-fill { height: 100%; border-radius: 2px; }
+  .qbar-fill.self { background: var(--crescent-blue); }
+  .qbar-fill.manager { background: var(--light-blue); }
+  .qbar-fill.support { background: var(--gold); }
+  .qbar-fill.others { background: var(--accent-positive); }
+  .qbar-value { text-align: right; font-size: 11.5px; font-weight: 900; color: var(--crescent-blue); font-variant-numeric: tabular-nums; }
+  .comp-legend { display: flex; gap: 18px; align-items: center; margin-bottom: 8px; font-size: 11px; color: var(--gray-700); }
+  .comp-legend .key { display: flex; align-items: center; gap: 6px; }
+  .comp-excellent { margin-top: 14px; padding: 14px 18px; background: var(--very-pale-blue); border-left: 4px solid var(--electric-yellow); border-radius: 3px; }
+  .comp-excellent h4 { margin: 0 0 6px 0; color: var(--crescent-blue); font-size: 13px; }
+  .comp-excellent ul { margin: 6px 0 0 0; padding-left: 18px; font-size: 12.5px; color: var(--gray-700); }
+  .comp-excellent li { margin-bottom: 4px; }
+  .comp-resources { margin-top: 12px; padding: 12px 16px; background: var(--white); border: 1px solid var(--gray-200); border-left: 4px solid var(--light-blue); border-radius: 3px; }
+  .comp-resources h4 { margin: 0 0 6px 0; color: var(--crescent-blue); font-size: 13px; }
+  .comp-resources p { margin: 0 0 8px 0; color: var(--gray-700); font-size: 12.5px; }
+  .resource-link-card { display: inline-block; background: var(--very-pale-blue); color: var(--crescent-blue); border: 1px solid var(--pale-blue); border-radius: 4px; padding: 8px 10px; font-size: 12px; font-weight: 800; }
+  .resource-link-card a { color: var(--crescent-blue); font-weight: 900; text-decoration: underline; text-underline-offset: 2px; }
+  .resource-link-card a::after { content: " ↗"; font-size: 10px; }
+  .competency-page .comp-excellent,
+  .competency-page .comp-resources {
+    break-inside: avoid-page;
+    page-break-inside: avoid;
+  }
+
+  .quote-list { margin: 8px 0 18px 0; }
+  .quote { background: var(--gray-50); border-left: 3px solid var(--light-blue); padding: 10px 14px; margin: 8px 0; font-size: 12.5px; color: var(--gray-900); border-radius: 0 3px 3px 0; }
+  .quote::before { content: "\201C"; color: var(--light-blue); font-size: 22px; line-height: .5; margin-right: 4px; vertical-align: -8px; font-weight: 900; }
+  .quote-group-label { font-size: 10px; color: var(--gray-500); text-transform: uppercase; letter-spacing: .8px; font-weight: 900; margin: 16px 0 4px 0; }
+  .feedback-question { font-weight: 900; color: var(--crescent-blue); font-size: 14px; margin: 18px 0 4px 0; padding-bottom: 6px; border-bottom: 2px solid var(--electric-yellow); }
+  .empty-comment { color: var(--gray-500); font-style: italic; }
+
+  @media (max-width: 1080px) {
+    .generator-grid { grid-template-columns: 1fr; }
+    .sheet { width: 100%; min-height: auto; }
+    .quick-view-grid, .comp-summary { grid-template-columns: 1fr; }
+  }
+
+  @page { size: Letter; margin: 0; }
+  @media print {
+    html, body {
+      width: 8.5in;
+      min-height: 11in;
+      background: var(--white);
+    }
+    .app-shell, .report-toolbar { display: none !important; }
+    .report-container {
+      display: block !important;
+      width: 8.5in;
+      margin: 0;
+      padding: 0;
+    }
+    .sheet {
+      width: 8.5in;
+      min-height: 11in;
+      margin: 0;
+      box-shadow: none;
+      border: none;
+      overflow: hidden;
+      page-break-after: always;
+      break-after: page;
+      page-break-inside: avoid;
+      break-inside: avoid-page;
+    }
+    .sheet:last-child { page-break-after: auto; break-after: auto; }
+    .sheet-body { padding: 24px 30px 30px; }
+    .sheet-tab { display: none !important; }
+    a { color: inherit; }
+    #cover-page,
+    #cover-page .cover {
+      height: 11in;
+      min-height: 11in;
+      max-height: 11in;
+    }
+    #cover-page .cover-top { padding: .55in .58in .22in .58in; }
+    #cover-page .cover h1 { font-size: 50px; }
+    #cover-page .cover h2 { font-size: 20px; }
+    #cover-page .cover-divider { margin: .32in .58in; }
+    #cover-page .cover-participant { padding: 0 .58in; }
+    #cover-page .cover-participant .name { font-size: 38px; }
+    #cover-page .cover-info-grid { margin-top: .35in; }
+    #cover-page .cover-rating-scale { margin: .35in .58in 0 .58in; padding: 14px 20px; }
+    #cover-page .cover-rating-scale .scale-row { grid-template-columns: 34px 1.72in 1fr; gap: 10px; padding: 4px 0; font-size: 12px; }
+    #cover-page .cover-rating-scale .num { width: 30px; height: 30px; font-size: 15px; }
+    #cover-page .cover-footer { padding: .18in .58in; }
+
+    .summary-page .quick-view-grid { margin-bottom: 0; }
+    .competency-averages-page .lead-paragraph { margin-bottom: 12px; }
+
+    .competency-page .sheet-body { padding: 18px 28px 22px; }
+    .competency-page .section-header { padding: 7px 12px; margin-bottom: 8px; }
+    .competency-page .comp-summary { grid-template-columns: 1.25fr 1fr; gap: 10px; margin: 8px 0 10px; }
+    .competency-page .comp-explainer { padding: 9px 12px; font-size: 11px; }
+    .competency-page .comp-stats { gap: 6px; }
+    .competency-page .comp-stat { padding: 6px 8px; }
+    .competency-page .comp-stat .label { font-size: 8.8px; }
+    .competency-page .comp-stat .value { font-size: 19px; }
+    .competency-page .comp-rating-row { gap: 8px; margin-bottom: 9px; }
+    .competency-page .comp-rating-card { padding: 8px 10px; }
+    .competency-page .comp-rating-card .value { font-size: 13.5px; }
+    .competency-page .sub-header { padding: 5px 10px; margin: 8px 0 6px; }
+    .competency-page .comp-legend { gap: 10px; margin-bottom: 5px; font-size: 9.8px; }
+    .competency-page .qbar-block { margin: 5px 0; padding: 7px 9px; }
+    .competency-page .qbar-question { font-size: 10.6px; margin-bottom: 4px; }
+    .competency-page .qbar-row { grid-template-columns: 78px 1fr 34px; gap: 6px; margin: 2px 0; }
+    .competency-page .qbar-label, .competency-page .qbar-value { font-size: 10px; }
+    .competency-page .qbar-track { height: 10px; }
+    .competency-page .comp-excellent { margin-top: 7px; padding: 8px 12px; }
+    .competency-page .comp-excellent h4 { font-size: 11.5px; margin-bottom: 3px; }
+    .competency-page .comp-excellent ul { font-size: 10.5px; margin-top: 3px; }
+    .competency-page .comp-excellent li { margin-bottom: 1px; }
+    .competency-page .comp-resources { margin-top: 6px; padding: 8px 12px; }
+    .competency-page .comp-resources h4 { font-size: 11.5px; margin-bottom: 3px; }
+    .competency-page .comp-resources p { font-size: 10.5px; margin-bottom: 5px; }
+    .competency-page .resource-link-card { padding: 5px 8px; font-size: 10.5px; }
+  }
+</style>
+</head>
+<body>
+<div class="app-shell" id="appShell">
+  <div class="app-hero">
+    <div class="yellow-bar"></div>
+    <div class="app-hero-inner">
+      <div class="app-eyebrow">Crescent Certified Leader Program</div>
+      <h1>360° Feedback Report Generator</h1>
+      <p>Paste text ratings from Excel, enter participant details, generate a polished leader-facing report, then export as PDF or standalone HTML.</p>
+    </div>
+  </div>
+
+  <div class="generator-grid">
+    <div class="left-stack">
+      <div class="panel">
+        <div class="panel-header">1 · Participant Setup</div>
+        <div class="panel-body">
+          <div class="field">
+            <label for="leaderName">Leader name</label>
+            <input id="leaderName" value="Sparky Jones" />
+          </div>
+          <div class="field">
+            <label for="roleTitle">Role title</label>
+            <input id="roleTitle" value="Senior Manager, Product Innovation" />
+          </div>
+          <div class="field">
+            <label for="supporterCount">Number of supporters</label>
+            <select id="supporterCount">
+              <option value="1">1 supporter</option>
+              <option value="2">2 supporters</option>
+              <option value="3">3 supporters</option>
+              <option value="4">4 supporters</option>
+              <option value="5" selected>5 supporters</option>
+            </select>
+            <div class="tiny-note">Manager is always shown separately. Supporters are grouped together.</div>
+          </div>
+          <div class="field">
+            <label for="surveyWindow">Survey window</label>
+            <input id="surveyWindow" value="03/01/2026 — 03/31/2026" />
+          </div>
+          <div class="field">
+            <label for="reportRound">Report round</label>
+            <input id="reportRound" value="Round 1 — Baseline Assessment" />
+          </div>
+          <div class="field">
+            <label for="reportVersion">Report version</label>
+            <select id="reportVersion">
+              <option value="full" selected>Full report</option>
+              <option value="condensed">Condensed report</option>
+            </select>
+            <div class="tiny-note">Condensed combines averages and priorities, removes the radar/bar chart page visuals, and omits Item-Level Ratings pages.</div>
+          </div>
+
+          <div class="button-row">
+            <button class="btn-secondary" id="loadSampleBtn" type="button">Load sample data</button>
+            <button class="btn-quiet" id="exportJsonBtn" type="button">Export input JSON</button>
+            <button class="btn-quiet" id="importJsonBtn" type="button">Import JSON</button>
+            <input id="jsonFileInput" type="file" accept="application/json,.json" style="display:none" />
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">2 · Learning Path Links</div>
+        <div class="panel-body">
+          <p class="hint">Optional: customize the Workday learning path display name and paste the actual Workday URL for each competency. When a URL is provided, the path name becomes a clickable link in the report.</p>
+          <div class="learning-path-list" id="learningPathFields"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">Competency Descriptions Reference</div>
+        <div class="panel-body">
+          <p class="hint">These are the descriptions shown in the Top 3 Development Priorities section when a competency is selected as a priority.</p>
+          <div class="competency-description-list" id="competencyDescriptionList"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">3 · Paste Excel Ratings</div>
+      <div class="panel-body">
+        <p class="hint"><strong>Expected structure:</strong> paste the rating columns only — Q1 through Q27 — with one row per rater. The static Rater Type list on the left assigns row 1 as Self, row 2 as Manager, and the next 1–5 rows as Supporters. Optional Open1–Open3 comments may be pasted after Q27. The older format with a Rater Type column still works.</p>
+        <div class="paste-layout">
+          <div class="rater-static-list" aria-label="Static rater type row order">
+            <div class="rater-static-header">Rater Type</div>
+            <div id="raterTypeGuideRows"></div>
+            <div class="rater-static-note">These labels are assigned by row order, so you only need to paste the ratings from Excel.</div>
+          </div>
+          <div>
+            <div class="paste-column-label">Paste ratings only: Q1 → Q27</div>
+            <textarea id="ratingsPaste" spellcheck="false" aria-label="Paste ratings only, Q1 through Q27"></textarea>
+          </div>
+        </div>
+        <div class="button-row">
+          <button class="btn-primary" id="generateBtn" type="button">Generate report</button>
+          <button class="btn-yellow" id="printBtn" type="button" disabled>Export PDF / Print</button>
+          <button class="btn-secondary" id="exportHtmlBtn" type="button" disabled>Export standalone HTML</button>
+          <button class="btn-danger" id="clearBtn" type="button">Clear</button>
+        </div>
+        <div class="status-box" id="statusBox"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="report-toolbar" id="reportToolbar">
+  <div>
+    <div class="toolbar-title">Report Preview</div>
+    <div class="toolbar-sub" id="toolbarSub">Generate a report to preview it here.</div>
+  </div>
+  <div class="button-row" style="margin:0">
+    <button class="btn-yellow" type="button" onclick="window.print()">Export PDF / Print</button>
+    <button class="btn-secondary" type="button" id="exportHtmlBtn2">Export standalone HTML</button>
+  </div>
+</div>
+
+<main class="report-container" id="reportContainer" aria-live="polite"></main>
+
+<script>
+const COMPETENCIES = [
+  { id: 'ethics', name: 'Ethics & Compliance', qStart: 1, qEnd: 3,
+    questions: [
+      'Models ethical behavior and decision-making, even when difficult or unpopular.',
+      'Creates an environment where others feel safe raising ethical concerns without fear of retaliation.',
+      'Holds themselves and others accountable to organizational policies and compliance standards.'
+    ],
+    definition: 'Modeling ethical decision-making, creating psychological safety for raising concerns, and holding self/others to compliance standards.',
+    excellent: [
+      'Speaks up about ethical concerns proactively, even when it is uncomfortable or politically risky.',
+      'Treats compliance as a shared standard rather than a top-down rule, and explains the “why” behind it.',
+      'Holds themselves to the highest bar — and lives by the same standard they ask of others.'
+    ],
+    learningPath: 'Workday: Ethical Leadership in Practice'
+  },
+  { id: 'accountability', name: 'Driving Accountability', qStart: 4, qEnd: 6,
+    questions: [
+      'Sets clear expectations and follows through to ensure commitments are met.',
+      'Addresses underperformance or missed commitments directly and constructively.',
+      'Takes ownership of outcomes — including setbacks — rather than deflecting responsibility.'
+    ],
+    definition: 'Setting clear expectations, addressing underperformance directly, and owning outcomes — including setbacks.',
+    excellent: [
+      'Establishes crisp, written expectations at the start of every initiative — and revisits them at decision points.',
+      'Has direct, timely conversations about performance gaps without delay or sugar-coating.',
+      'Owns mistakes openly, so the team learns it is safe to do the same.'
+    ],
+    learningPath: 'Workday: Accountability & Tough Conversations'
+  },
+  { id: 'performance', name: 'Performance Management & Coaching', qStart: 7, qEnd: 9,
+    questions: [
+      'Provides timely, specific, and actionable feedback to support team member development.',
+      'Tailors coaching approaches to individuals\' unique strengths and development needs.',
+      'Holds regular, meaningful conversations focused on performance and growth.'
+    ],
+    definition: 'Providing timely and specific feedback, tailoring coaching to individual needs, and holding regular growth-focused conversations.',
+    excellent: [
+      'Gives feedback close to the moment — not saved up for review cycles.',
+      'Adjusts coaching style to the individual rather than running one playbook for the whole team.',
+      'Treats 1:1s as protected time for growth, not status updates.'
+    ],
+    learningPath: 'Workday: Coaching for Growth'
+  },
+  { id: 'communication', name: 'Communication', qStart: 10, qEnd: 12,
+    questions: [
+      'Communicates information clearly and in a way that is easy to understand across different audiences.',
+      'Actively listens and demonstrates genuine consideration of others\' perspectives before responding.',
+      'Keeps stakeholders appropriately informed — sharing the right information at the right time.'
+    ],
+    definition: 'Communicating clearly across audiences, listening actively, and keeping stakeholders appropriately informed.',
+    excellent: [
+      'Translates complex ideas into clear, audience-appropriate language without losing nuance.',
+      'Demonstrates listening through summarizing back, asking follow-ups, and pausing before responding.',
+      'Proactively keeps stakeholders in the loop before they have to ask.'
+    ],
+    learningPath: 'Workday: Influential Communication'
+  },
+  { id: 'change', name: 'Leading Change', qStart: 13, qEnd: 15,
+    questions: [
+      'Articulates a clear and compelling case for change that helps others understand the “why” behind it.',
+      'Maintains team focus and morale during periods of uncertainty or transition.',
+      'Adapts plans and approaches when circumstances change, without losing sight of objectives.'
+    ],
+    definition: 'Articulating a compelling case for change, maintaining morale through transition, and adapting plans without losing the objective.',
+    excellent: [
+      'Connects change to mission and individual purpose, not just business rationale.',
+      'Acknowledges the emotional reality of transition while keeping the team focused on what matters.',
+      'Adjusts the route without losing the destination.'
+    ],
+    learningPath: 'Workday: Leading Through Change'
+  },
+  { id: 'crossfunc', name: 'Cross-Functional Ownership', qStart: 16, qEnd: 18,
+    questions: [
+      'Proactively collaborates with teams and functions outside their direct area to achieve shared goals.',
+      'Considers the downstream impact of their decisions on other parts of the organization.',
+      'Removes barriers to cross-functional collaboration rather than waiting for others to resolve them.'
+    ],
+    definition: 'Collaborating proactively beyond your function, considering downstream impact, and removing cross-functional barriers.',
+    excellent: [
+      'Builds relationships with peer leaders before they are needed — not just when there is a crisis.',
+      'Pressure-tests decisions for downstream impact before locking them in.',
+      'Owns the gap between functions rather than passing it back and forth.'
+    ],
+    learningPath: 'Workday: Working Across the Organization'
+  },
+  { id: 'mentoring', name: 'Mentoring Across the Organization', qStart: 19, qEnd: 21,
+    questions: [
+      'Invests time in developing others, including those outside their direct team.',
+      'Shares knowledge, experience, and networks generously to support others\' professional growth.',
+      'Advocates for high-potential individuals by creating visibility and access to opportunities for them.'
+    ],
+    definition: 'Investing in others beyond your team, sharing networks generously, and advocating for high-potential talent.',
+    excellent: [
+      'Treats mentoring as a leadership responsibility, not an extracurricular.',
+      'Opens doors and shares networks generously rather than gate-keeping access.',
+      'Advocates for talent in rooms they are not in.'
+    ],
+    learningPath: 'Workday: Mentoring at Crescent'
+  },
+  { id: 'strategic', name: 'Strategic Thinking', qStart: 22, qEnd: 24,
+    questions: [
+      'Connects day-to-day decisions to the broader organizational strategy and long-term goals.',
+      'Anticipates future challenges and opportunities and adjusts priorities accordingly.',
+      'Challenges assumptions and encourages innovative approaches to complex problems.'
+    ],
+    definition: 'Connecting day-to-day decisions to long-term goals, anticipating future shifts, and challenging assumptions.',
+    excellent: [
+      'Routinely zooms out to test whether today\'s priorities still serve the long-term direction.',
+      'Looks two or three steps ahead, not just at the next deliverable.',
+      'Welcomes — even invites — challenges to the prevailing assumption.'
+    ],
+    learningPath: 'Workday: Strategic Mindset for Leaders'
+  },
+  { id: 'eq', name: 'Emotional Intelligence', qStart: 25, qEnd: 27,
+    questions: [
+      'Manages their own emotions effectively in high-pressure or stressful situations.',
+      'Demonstrates empathy by recognizing and thoughtfully responding to the emotions of others.',
+      'Adjusts their leadership approach based on awareness of how their behavior impacts those around them.'
+    ],
+    definition: 'Managing emotions under pressure, demonstrating empathy, and adjusting your style based on impact awareness.',
+    excellent: [
+      'Stays composed under pressure, which gives the team permission to do the same.',
+      'Reads the room — and adjusts.',
+      'Treats self-awareness as a leadership tool, not a soft skill.'
+    ],
+    learningPath: 'Workday: Emotional Intelligence at Work'
+  }
+];
+
+const SCALE_LABELS = {
+  1: 'Strongly Disagree',
+  2: 'Disagree',
+  3: 'Neither Agree nor Disagree',
+  4: 'Agree',
+  5: 'Strongly Agree'
+};
+
+const OPEN_QUESTIONS = [
+  'What does this leader do particularly well that has a positive impact on their team and the broader organization?',
+  'What is one behavior this leader could change or develop that would most increase their effectiveness as a leader?',
+  'Is there anything else you would like to share about this leader\'s leadership development that was not captured in the questions above?'
+];
+
+let currentReportState = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+  renderLearningPathUrlFields();
+  renderCompetencyDescriptionReference();
+  updateRaterTypeGuide();
+  document.getElementById('supporterCount').addEventListener('change', updateRaterTypeGuide);
+  document.getElementById('loadSampleBtn').addEventListener('click', loadSampleData);
+  document.getElementById('generateBtn').addEventListener('click', generateReportFromForm);
+  document.getElementById('printBtn').addEventListener('click', () => window.print());
+  document.getElementById('exportHtmlBtn').addEventListener('click', exportStandaloneHtml);
+  document.getElementById('exportHtmlBtn2').addEventListener('click', exportStandaloneHtml);
+  document.getElementById('clearBtn').addEventListener('click', clearAll);
+  document.getElementById('exportJsonBtn').addEventListener('click', exportInputJson);
+  document.getElementById('importJsonBtn').addEventListener('click', () => document.getElementById('jsonFileInput').click());
+  document.getElementById('jsonFileInput').addEventListener('change', importInputJson);
+  loadSampleData();
+});
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function slug(value) {
+  return String(value || 'report').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'report';
+}
+
+function learningPathInputId(compId) {
+  return `learningPathUrl_${compId}`;
+}
+
+function learningPathNameInputId(compId) {
+  return `learningPathName_${compId}`;
+}
+
+function getDefaultLearningPathLabel(comp) {
+  if (typeof comp.learningPath === 'string') return comp.learningPath;
+  return comp.learningPath?.label || comp.name;
+}
+
+function getLearningPathLabel(comp, meta) {
+  const link = meta?.learningPathLinks?.[comp.id];
+  if (link && typeof link === 'object' && String(link.label || '').trim()) return String(link.label).trim();
+  if (typeof link === 'string' && String(link).trim()) return String(link).trim();
+  if (meta?.learningPathNames?.[comp.id]) return String(meta.learningPathNames[comp.id]).trim();
+  return getDefaultLearningPathLabel(comp);
+}
+
+function getLearningPathUrl(comp, meta) {
+  const link = meta?.learningPathLinks?.[comp.id];
+  if (link && typeof link === 'object') return link.url || '';
+  return meta?.learningPathUrls?.[comp.id] || '';
+}
+
+function renderLearningPathUrlFields() {
+  const container = document.getElementById('learningPathFields');
+  if (!container) return;
+  container.innerHTML = COMPETENCIES.map(comp => `
+    <div class="learning-path-entry">
+      <label for="${learningPathNameInputId(comp.id)}">${escapeHtml(comp.name)}</label>
+      <div class="learning-path-pair">
+        <div>
+          <span class="learning-path-sub-label">Display name shown in report</span>
+          <input id="${learningPathNameInputId(comp.id)}" type="text" value="${escapeHtml(getDefaultLearningPathLabel(comp))}" aria-label="${escapeHtml(comp.name)} Workday learning path display name" />
+        </div>
+        <div>
+          <span class="learning-path-sub-label">Workday URL</span>
+          <input id="${learningPathInputId(comp.id)}" type="url" inputmode="url" placeholder="Paste Workday learning path URL" aria-label="${escapeHtml(comp.name)} Workday learning path URL" />
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderCompetencyDescriptionReference() {
+  const container = document.getElementById('competencyDescriptionList');
+  if (!container) return;
+  container.innerHTML = COMPETENCIES.map(comp => `
+    <div class="competency-description-card">
+      <div class="name">${escapeHtml(comp.name)}</div>
+      <div class="definition">${escapeHtml(comp.definition)}</div>
+    </div>
+  `).join('');
+}
+
+function getLearningPathLinkMap() {
+  return Object.fromEntries(COMPETENCIES.map(comp => {
+    const nameEl = document.getElementById(learningPathNameInputId(comp.id));
+    const urlEl = document.getElementById(learningPathInputId(comp.id));
+    const label = nameEl ? nameEl.value.trim() : getDefaultLearningPathLabel(comp);
+    const url = urlEl ? urlEl.value.trim() : '';
+    return [comp.id, { label: label || getDefaultLearningPathLabel(comp), url }];
+  }));
+}
+
+function getLearningPathUrlMap() {
+  const links = getLearningPathLinkMap();
+  return Object.fromEntries(COMPETENCIES.map(comp => [comp.id, links[comp.id]?.url || '']));
+}
+
+function applyLearningPathLinkMap(links = {}) {
+  COMPETENCIES.forEach(comp => {
+    const nameEl = document.getElementById(learningPathNameInputId(comp.id));
+    const urlEl = document.getElementById(learningPathInputId(comp.id));
+    const raw = links[comp.id];
+    const label = raw && typeof raw === 'object' ? raw.label : '';
+    const url = raw && typeof raw === 'object' ? raw.url : (typeof raw === 'string' ? raw : '');
+    if (nameEl) nameEl.value = String(label || getDefaultLearningPathLabel(comp));
+    if (urlEl) urlEl.value = String(url || '');
+  });
+}
+
+function applyLearningPathUrlMap(urls = {}) {
+  applyLearningPathLinkMap(Object.fromEntries(COMPETENCIES.map(comp => [comp.id, { label: getDefaultLearningPathLabel(comp), url: urls[comp.id] || '' }])));
+}
+
+function updateRaterTypeGuide() {
+  const container = document.getElementById('raterTypeGuideRows');
+  const supporterCount = Number(document.getElementById('supporterCount')?.value || 1);
+  if (!container) return;
+  const labels = ['Self', 'Manager', ...Array.from({ length: supporterCount }, (_, i) => `Supporter ${i + 1}`)];
+  container.innerHTML = labels.map((label, idx) => `
+    <div class="rater-static-row"><span class="row-num">${idx + 1}</span>${escapeHtml(label)}</div>
+  `).join('');
+}
+
+function safeLearningPathUrl(value) {
+  const url = String(value || '').trim();
+  if (!url) return '';
+  if (/^https?:\/\//i.test(url)) return url;
+  return '';
+}
+
+function renderLearningPath(comp, meta) {
+  const label = getLearningPathLabel(comp, meta);
+  const url = safeLearningPathUrl(getLearningPathUrl(comp, meta));
+  if (!url) return escapeHtml(label);
+  return `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(label)}</a>`;
+}
+
+function renderCompetencyAdditionalResources(comp, meta) {
+  return `<div class="comp-resources">
+    <h4>Additional Resources: Workday Learning Path</h4>
+    <p>This optional resource is included for continued development, even when this competency is not one of the top three priorities.</p>
+    <div class="resource-link-card">${renderLearningPath(comp, meta)}</div>
+  </div>`;
+}
+
+function avg(values) {
+  const valid = values.filter(v => typeof v === 'number' && !Number.isNaN(v));
+  if (!valid.length) return null;
+  return valid.reduce((a,b) => a + b, 0) / valid.length;
+}
+
+function fmt(value, decimals = 2) {
+  if (value === null || value === undefined || Number.isNaN(value)) return '—';
+  return Number(value).toFixed(decimals);
+}
+
+function fmtGap(value) {
+  if (value === null || value === undefined || Number.isNaN(value)) return '—';
+  return `${value >= 0 ? '+' : ''}${fmt(value, 2)}`;
+}
+
+function ratingTextToNumber(value) {
+  if (value === null || value === undefined) return null;
+  let s = String(value).trim();
+  if (!s) return null;
+  const numeric = s.match(/^([1-5])(\.0+)?(\s*[-–—:]\s*.*)?$/);
+  if (numeric) return Number(numeric[1]);
+  s = s.toLowerCase()
+    .replace(/[“”]/g, '"')
+    .replace(/[_-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (['n/a','na','not applicable','unable to observe','unable','cannot observe','no basis','blank','null','none'].includes(s)) return null;
+  // Check middle/neutral responses before Agree/Disagree because
+  // “Neither Agree nor Disagree” contains both words.
+  if (s.includes('neither') || s.includes('neutral') || s === 'n' || s === 'nad') return 3;
+  if (s.includes('strongly agree') || s === 'sa') return 5;
+  if (s.includes('strongly disagree') || s === 'sd') return 1;
+  if (s === 'agree' || s === 'a' || s.includes(' agree')) return 4;
+  if (s === 'disagree' || s === 'd' || s.includes(' disagree')) return 2;
+  return null;
+}
+
+function parseDelimited(text) {
+  const clean = String(text || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
+  if (!clean) return [];
+  const lines = clean.split('\n').filter(line => line.trim().length);
+  const delimiter = lines.some(line => line.includes('\t')) ? '\t' : ',';
+  if (delimiter === '\t') return lines.map(line => line.split('\t').map(cell => cell.trim()));
+  return lines.map(parseCsvLine);
+}
+
+function parseCsvLine(line) {
+  const cells = [];
+  let current = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    if (char === '"') {
+      if (inQuotes && line[i+1] === '"') { current += '"'; i++; }
+      else inQuotes = !inQuotes;
+    } else if (char === ',' && !inQuotes) {
+      cells.push(current.trim());
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  cells.push(current.trim());
+  return cells;
+}
+
+function looksLikeHeader(row) {
+  const joined = row.map(c => String(c).toLowerCase()).join('|');
+  return /(^|\|)q\s*1(\||$)/.test(joined) || joined.includes('rater') || joined.includes('open1') || joined.includes('open 1');
+}
+
+function normalizeHeader(value) {
+  return String(value || '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '');
+}
+
+function inferRaterType(raw, rowIndex) {
+  const s = String(raw || '').toLowerCase().trim();
+  if (s.includes('self')) return 'self';
+  if (s.includes('manager') || s.includes('leader')) return 'manager';
+  if (s.includes('support') || s.includes('direct') || s.includes('peer') || s.includes('colleague') || s.includes('other')) return 'supporter';
+  if (rowIndex === 0) return 'self';
+  if (rowIndex === 1) return 'manager';
+  return 'supporter';
+}
+
+function defaultRaterLabel(rowIndex) {
+  if (rowIndex === 0) return 'Self';
+  if (rowIndex === 1) return 'Manager';
+  return `Supporter ${rowIndex - 1}`;
+}
+
+function parseRatingsInput(text, supporterCount) {
+  const warnings = [];
+  const errors = [];
+  let rows = parseDelimited(text);
+  if (!rows.length) return { errors: ['Paste at least one row of ratings data.'], warnings: [], data: null };
+
+  let header = null;
+  if (looksLikeHeader(rows[0])) header = rows.shift();
+
+  const headerMap = {};
+  let raterCol = null;
+  let qCols = Array.from({ length: 27 }, (_, i) => i);
+  let openCols = [27, 28, 29];
+
+  if (header) {
+    header.forEach((h, idx) => { headerMap[normalizeHeader(h)] = idx; });
+    const raterKeys = ['ratertype','rater','relationship','group','respondenttype'];
+    for (const key of raterKeys) {
+      if (headerMap[key] !== undefined) { raterCol = headerMap[key]; break; }
+    }
+    qCols = Array.from({length: 27}, (_, i) => {
+      const qNum = i + 1;
+      const directKeys = [`q${qNum}`, `question${qNum}`, `${qNum}`];
+      const direct = directKeys.map(k => headerMap[k]).find(v => v !== undefined);
+      if (direct !== undefined) return direct;
+      const fuzzy = header.findIndex(h => normalizeHeader(h) === `q${qNum}` || normalizeHeader(h).startsWith(`q${qNum}`));
+      return fuzzy >= 0 ? fuzzy : i;
+    });
+    openCols = [1,2,3].map(n => {
+      const keys = [`open${n}`, `openended${n}`, `comment${n}`, `opentext${n}`];
+      const found = keys.map(k => headerMap[k]).find(v => v !== undefined);
+      return found !== undefined ? found : 26 + n;
+    });
+  }
+
+  const parsedRows = rows.map((row, idx) => {
+    let raterRaw = '';
+    let ratings;
+    let comments;
+
+    if (header) {
+      raterRaw = raterCol !== null ? (row[raterCol] || '') : '';
+      ratings = qCols.map(col => ratingTextToNumber(row[col]));
+      comments = openCols.map(col => String(row[col] || '').trim()).filter(Boolean);
+    } else {
+      const firstScore = ratingTextToNumber(row[0]);
+      const firstCell = String(row[0] || '').trim();
+      const rowHasRaterColumn = firstScore === null && firstCell.length > 0;
+      const startCol = rowHasRaterColumn ? 1 : 0;
+      raterRaw = rowHasRaterColumn ? firstCell : '';
+      ratings = Array.from({ length: 27 }, (_, i) => ratingTextToNumber(row[startCol + i]));
+      comments = [0, 1, 2].map(i => String(row[startCol + 27 + i] || '').trim()).filter(Boolean);
+    }
+
+    const type = inferRaterType(raterRaw, idx);
+    const label = raterRaw || defaultRaterLabel(idx);
+    return { type, label, ratings, comments, sourceRow: idx + (header ? 2 : 1) };
+  });
+
+  const selfRows = parsedRows.filter(r => r.type === 'self');
+  const managerRows = parsedRows.filter(r => r.type === 'manager');
+  let supporterRows = parsedRows.filter(r => r.type === 'supporter');
+
+  if (!selfRows.length) warnings.push('No Self row was detected. Row 1 should be Self when pasting ratings-only data.');
+  if (!managerRows.length) warnings.push('No Manager row was detected. Row 2 should be Manager when pasting ratings-only data.');
+  if (selfRows.length > 1) warnings.push('More than one Self row was found. The first Self row was used.');
+  if (managerRows.length > 1) warnings.push('More than one Manager row was found. The first Manager row was used.');
+  if (supporterRows.length > supporterCount) warnings.push(`${supporterRows.length} supporter rows were found, but supporter count is set to ${supporterCount}. Only the first ${supporterCount} supporter row(s) will be used.`);
+  if (supporterRows.length < supporterCount) warnings.push(`${supporterCount} supporter row(s) expected, but only ${supporterRows.length} were detected.`);
+  supporterRows = supporterRows.slice(0, supporterCount);
+
+  const data = {
+    self: selfRows[0] || { type: 'self', label: 'Self', ratings: Array(27).fill(null), comments: [] },
+    manager: managerRows[0] || { type: 'manager', label: 'Manager', ratings: Array(27).fill(null), comments: [] },
+    supporters: supporterRows
+  };
+
+  const ratingCount = [data.self, data.manager, ...data.supporters].flatMap(r => r.ratings).filter(v => typeof v === 'number').length;
+  if (!ratingCount) errors.push('No recognizable ratings were found. Use numbers 1–5 or text such as Strongly Agree, Agree, Neither Agree nor Disagree, Disagree, Strongly Disagree, or Unable to Observe.');
+
+  return { errors, warnings, data };
+}
+
+function compStats(comp, data) {
+  const start = comp.qStart - 1;
+  const end = comp.qEnd;
+  const slice = arr => arr.slice(start, end);
+  const selfVals = slice(data.self.ratings);
+  const mgrVals = slice(data.manager.ratings);
+  const supVals = data.supporters.flatMap(s => slice(s.ratings));
+  const othersVals = [...mgrVals, ...supVals];
+  const expectedOthers = (1 + data.supporters.length) * (comp.qEnd - comp.qStart + 1);
+  const missingOthers = othersVals.filter(v => v === null || v === undefined).length;
+  const selfAvg = avg(selfVals);
+  const mgrAvg = avg(mgrVals);
+  const supAvg = avg(supVals);
+  const othersAvg = avg(othersVals);
+  const gap = selfAvg !== null && othersAvg !== null ? selfAvg - othersAvg : null;
+  return {
+    selfAvg, mgrAvg, supAvg, othersAvg, gap,
+    rating: classifyRating(othersAvg),
+    gapType: classifyGap(gap),
+    naRate: expectedOthers ? missingOthers / expectedOthers : null,
+    nOthers: othersVals.filter(v => typeof v === 'number').length,
+    expectedOthers
+  };
+}
+
+function questionStats(qIndex, data) {
+  const self = data.self.ratings[qIndex];
+  const manager = data.manager.ratings[qIndex];
+  const supporterVals = data.supporters.map(s => s.ratings[qIndex]);
+  const othersAll = [manager, ...supporterVals];
+  const dist = [0,0,0,0,0];
+  othersAll.forEach(v => { if (v >= 1 && v <= 5) dist[v-1]++; });
+  const valid = dist.reduce((a,b) => a + b, 0);
+  const missing = othersAll.length - valid;
+  const distPct = valid ? dist.map(c => c / valid * 100) : [0,0,0,0,0];
+  return {
+    self,
+    manager,
+    supportersAvg: avg(supporterVals),
+    othersAvg: avg(othersAll),
+    dist,
+    distPct,
+    valid,
+    missing,
+    naRate: othersAll.length ? missing / othersAll.length : null
+  };
+}
+
+function overallStats(data) {
+  const selfVals = data.self.ratings;
+  const mgrVals = data.manager.ratings;
+  const supVals = data.supporters.flatMap(s => s.ratings);
+  const othersVals = [...mgrVals, ...supVals];
+  const expectedOthers = (1 + data.supporters.length) * 27;
+  const missingOthers = othersVals.filter(v => v === null || v === undefined).length;
+  return {
+    selfAvg: avg(selfVals),
+    managerAvg: avg(mgrVals),
+    supportersAvg: avg(supVals),
+    othersAvg: avg(othersVals),
+    allAvg: avg([...selfVals, ...othersVals]),
+    naRate: expectedOthers ? missingOthers / expectedOthers : null,
+    nOthers: othersVals.filter(v => typeof v === 'number').length,
+    expectedOthers
+  };
+}
+
+function classifyRating(othersAvg) {
+  if (othersAvg === null || othersAvg === undefined || Number.isNaN(othersAvg)) return { label: 'N/A', cls: 'badge-na', card: 'developing' };
+  if (othersAvg > 4) return { label: 'Strength', cls: 'badge-strength', card: 'strength' };
+  if (othersAvg >= 3) return { label: 'Developing', cls: 'badge-developing', card: 'developing' };
+  return { label: 'Focus Area', cls: 'badge-focus', card: 'focus' };
+}
+
+function classifyGap(gap) {
+  if (gap === null || gap === undefined || Number.isNaN(gap)) return { label: 'N/A', cls: 'badge-na', card: 'aligned' };
+  if (gap >= 1.0) return { label: 'Blind Spot', cls: 'badge-blindspot', card: 'blindspot' };
+  if (gap >= 0.5) return { label: 'Watch Area', cls: 'badge-watch', card: 'watch' };
+  if (gap <= -0.5) return { label: 'Hidden Strength', cls: 'badge-hidden', card: 'hidden' };
+  return { label: 'Aligned', cls: 'badge-aligned', card: 'aligned' };
+}
+
+function buildSamplePaste() {
+  const self = [5,5,5, 4,4,4, 4,4,5, 4,4,5, 4,4,4, 4,4,4, 4,4,4, 4,4,4, 4,4,4];
+  const manager = [5,4,4, 3,2,3, 3,4,3, 4,4,3, 4,4,4, 3,2,3, 4,4,3, 4,3,3, 4,4,3];
+  const supporters = [
+    [5,5,4, 2,3,3, 3,3,3, 4,4,3, 4,4,4, 2,3,3, 3,4,3, 4,3,4, 4,4,3],
+    [5,4,5, 3,2,3, 4,3,4, 3,4,3, 4,5,4, 3,3,2, 4,3,4, 3,4,3, 4,4,4],
+    [4,5,4, 3,3,2, 3,4,3, 4,3,4, 4,4,4, 3,2,3, 3,4,3, 4,3,4, 4,4,4],
+    [5,4,5, 2,2,3, 4,3,3, 4,4,3, 4,4,4, 2,3,3, 4,4,3, 4,4,3, 4,4,3],
+    [5,5,4, 3,3,3, 3,4,3, 3,4,4, 4,5,4, 3,3,3, 3,3,4, 3,3,4, 4,4,4]
+  ];
+  const comments = {
+    Self: ['I try to be transparent and consistent with expectations.', 'I want to improve follow-through across functions.', 'I am focused on building stronger habits around accountability.'],
+    Manager: ['This leader has an unwavering commitment to doing the right thing.', 'Stronger follow-through on cross-functional commitments would increase effectiveness.', 'The 360 feedback should be read as a roadmap, not a verdict.'],
+    'Supporter 1': ['She has the strongest moral compass of any leader I have worked with.', 'More direct conversations when performance is not where it needs to be.', 'She is a generous mentor and helps people think through career decisions.'],
+    'Supporter 2': ['Excellent at framing the why behind decisions and bringing the team along.', 'Increase visibility into other functions priorities before making commitments.', 'I would love to see her trust the team more on tactical decisions.'],
+    'Supporter 3': ['Models the behaviors she expects and does not ask people to do what she would not do.', 'Hold one-on-ones more consistently.', 'No additional comments.'],
+    'Supporter 4': ['Genuinely curious about people and adapts her style to fit.', 'Be more decisive when accountability is at stake.', 'Strong potential and very open to feedback.'],
+    'Supporter 5': ['Creates a calm environment during change.', 'Proactive communication when timelines shift would help.', 'Looking forward to working together more.']
+  };
+  const rows = [
+    [...self.map(v => SCALE_LABELS[v]), ...comments.Self],
+    [...manager.map(v => SCALE_LABELS[v]), ...comments.Manager],
+    ...supporters.map((ratings, idx) => [...ratings.map(v => SCALE_LABELS[v]), ...comments[`Supporter ${idx+1}`]])
+  ];
+  return rows.map(row => row.join('\t')).join('\n');
+}
+
+function loadSampleData() {
+  document.getElementById('leaderName').value = 'Sparky Jones';
+  document.getElementById('roleTitle').value = 'Senior Manager, Product Innovation';
+  document.getElementById('supporterCount').value = '5';
+  updateRaterTypeGuide();
+  document.getElementById('surveyWindow').value = '03/01/2026 — 03/31/2026';
+  document.getElementById('reportRound').value = 'Round 1 — Baseline Assessment';
+  document.getElementById('reportVersion').value = 'full';
+  applyLearningPathLinkMap({});
+  document.getElementById('ratingsPaste').value = buildSamplePaste();
+  showStatus('Sample data loaded. Click Generate report to preview the participant report.', 'ok');
+}
+
+function clearAll() {
+  document.getElementById('ratingsPaste').value = '';
+  document.getElementById('reportContainer').innerHTML = '';
+  document.getElementById('reportContainer').classList.remove('show');
+  document.getElementById('reportToolbar').classList.remove('show');
+  document.getElementById('printBtn').disabled = true;
+  document.getElementById('exportHtmlBtn').disabled = true;
+  currentReportState = null;
+  showStatus('Input cleared.', 'warn');
+}
+
+function showStatus(message, type = 'ok', warnings = []) {
+  const box = document.getElementById('statusBox');
+  box.className = `status-box show status-${type}`;
+  const warningHtml = warnings.length ? `<ul>${warnings.map(w => `<li>${escapeHtml(w)}</li>`).join('')}</ul>` : '';
+  box.innerHTML = `${escapeHtml(message)}${warningHtml}`;
+}
+
+function getFormMeta() {
+  return {
+    leaderName: document.getElementById('leaderName').value.trim() || 'Participant',
+    roleTitle: document.getElementById('roleTitle').value.trim() || 'Role Title',
+    supporterCount: Math.max(1, Math.min(5, Number(document.getElementById('supporterCount').value || 1))),
+    surveyWindow: document.getElementById('surveyWindow').value.trim() || 'Survey window not specified',
+    reportRound: document.getElementById('reportRound').value.trim() || '360° Feedback Report',
+    reportVersion: document.getElementById('reportVersion').value || 'full',
+    learningPathLinks: getLearningPathLinkMap(),
+    learningPathUrls: getLearningPathUrlMap()
+  };
+}
+
+function generateReportFromForm() {
+  const meta = getFormMeta();
+  const result = parseRatingsInput(document.getElementById('ratingsPaste').value, meta.supporterCount);
+  if (result.errors.length) {
+    showStatus(result.errors.join(' '), 'error', result.warnings);
+    return;
+  }
+  currentReportState = { meta, data: result.data, warnings: result.warnings };
+  renderReport(currentReportState);
+  document.getElementById('reportContainer').classList.add('show');
+  document.getElementById('reportToolbar').classList.add('show');
+  document.getElementById('printBtn').disabled = false;
+  document.getElementById('exportHtmlBtn').disabled = false;
+  const versionLabel = meta.reportVersion === 'condensed' ? 'Condensed report' : 'Full report';
+  document.getElementById('toolbarSub').textContent = `${meta.leaderName} · ${meta.roleTitle} · ${versionLabel}`;
+  const ratingRows = 2 + result.data.supporters.length;
+  showStatus(`${versionLabel} generated using ${ratingRows} rater row(s): Self, Manager, and ${result.data.supporters.length} supporter row(s).`, result.warnings.length ? 'warn' : 'ok', result.warnings);
+  document.getElementById('reportToolbar').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function renderReport(state) {
+  const { meta, data, warnings } = state;
+  const container = document.getElementById('reportContainer');
+  const stats = overallStats(data);
+  const compRows = COMPETENCIES.map(c => ({ comp: c, stats: compStats(c, data) }));
+  const isCondensed = meta.reportVersion === 'condensed';
+
+  const pages = isCondensed
+    ? [
+        renderCover(meta, data),
+        renderHowToRead(meta),
+        renderCondensedSummaryPriorities(meta, data, stats, compRows),
+        ...COMPETENCIES.map((comp, idx) => renderCompetencyPage(meta, data, comp)),
+        renderOpenTextPage(meta, data)
+      ]
+    : [
+        renderCover(meta, data),
+        renderHowToRead(meta),
+        renderOverallSummary(meta, data, stats, compRows),
+        renderCompetencyAveragesPage(meta, compRows),
+        renderDevelopmentPrioritiesPage(meta, compRows),
+        renderItemLevelPage(meta, data, COMPETENCIES.slice(0, 3), 'Item-Level Ratings — Page 1 of 3'),
+        renderItemLevelPage(meta, data, COMPETENCIES.slice(3, 6), 'Item-Level Ratings — Page 2 of 3'),
+        renderItemLevelPage(meta, data, COMPETENCIES.slice(6, 9), 'Item-Level Ratings — Page 3 of 3'),
+        ...COMPETENCIES.map((comp, idx) => renderCompetencyPage(meta, data, comp)),
+        renderOpenTextPage(meta, data)
+      ];
+
+  container.innerHTML = pages.join('\n');
+}
+
+function renderCondensedSummaryPriorities(meta, data, stats, compRows) {
+  const sorted = [...compRows]
+    .filter(row => row.stats.othersAvg !== null)
+    .sort((a,b) => a.stats.othersAvg - b.stats.othersAvg)
+    .slice(0,3);
+  return `
+  <section class="sheet condensed-summary-page">
+    <div class="sheet-tab">Averages by Competency & Top Priorities</div>
+    <div class="sheet-body">
+      <div class="section-header first">Averages by Competency & Top Priorities — ${escapeHtml(meta.leaderName)}</div>
+      <div class="avg-boxes">
+        <div class="avg-box overall"><div class="label">Others' Average</div><div class="value">${fmt(stats.othersAvg)}<span class="value-suffix"> / 5</span></div></div>
+        <div class="avg-box"><div class="label">Self Average</div><div class="value">${fmt(stats.selfAvg)}<span class="value-suffix"> / 5</span></div></div>
+        <div class="avg-box"><div class="label">Manager Average</div><div class="value">${fmt(stats.managerAvg)}<span class="value-suffix"> / 5</span></div></div>
+        <div class="avg-box"><div class="label">Supporters Average</div><div class="value">${fmt(stats.supportersAvg)}<span class="value-suffix"> / 5</span></div></div>
+        <div class="avg-box"><div class="label">Others' N/A Rate</div><div class="value">${stats.naRate === null ? '—' : Math.round(stats.naRate * 100)}<span class="value-suffix">%</span></div></div>
+      </div>
+      <div class="sub-header">Averages by Competency</div>
+      <table class="striped">
+        <thead><tr><th>Competency</th><th class="num">Self</th><th class="num">Manager</th><th class="num">Supporters</th><th class="num">Others' Avg</th><th class="num">Gap</th><th class="num">N/A</th><th>Gap Type</th><th>Rating</th></tr></thead>
+        <tbody>
+          ${compRows.map(row => `<tr><td><strong>${escapeHtml(row.comp.name)}</strong></td><td class="num">${fmt(row.stats.selfAvg)}</td><td class="num">${fmt(row.stats.mgrAvg)}</td><td class="num">${fmt(row.stats.supAvg)}</td><td class="num">${fmt(row.stats.othersAvg)}</td><td class="num">${fmtGap(row.stats.gap)}</td><td class="num">${row.stats.naRate === null ? '—' : Math.round(row.stats.naRate*100)+'%'}</td><td><span class="badge ${row.stats.gapType.cls}">${row.stats.gapType.label}</span></td><td><span class="badge ${row.stats.rating.cls}">${row.stats.rating.label}</span></td></tr>`).join('')}
+        </tbody>
+      </table>
+      <div class="sub-header">Top Priorities</div>
+      <div class="lead-paragraph">Priorities are determined by the lowest Others' Average across the nine competencies. Use this section to choose focused development actions and link directly to the related learning path.</div>
+      <div class="condensed-priorities">
+        ${sorted.length ? sorted.map((row, idx) => renderPriorityCard(row.comp, row.stats, idx, meta)).join('') : '<p class="empty-comment">No priorities could be calculated because no others ratings were available.</p>'}
+      </div>
+    </div>
+  </section>`;
+}
+
+
+function renderCover(meta, data) {
+  return `
+  <section class="sheet" id="cover-page">
+    <div class="sheet-tab">Cover</div>
+    <div class="cover">
+      <div class="cover-yellow-bar"></div>
+      <div class="cover-top">
+        <div class="cover-program">Crescent Certified Leader Program</div>
+        <h1>360° Feedback Report</h1>
+        <h2>${escapeHtml(meta.reportRound)}</h2>
+      </div>
+      <div class="cover-divider"></div>
+      <div class="cover-participant">
+        <div class="label">Participant</div>
+        <div class="name">${escapeHtml(meta.leaderName)}</div>
+        <div class="title">${escapeHtml(meta.roleTitle)}</div>
+        <div class="cover-info-grid">
+          <div><h3>Survey Window</h3><p>${escapeHtml(meta.surveyWindow)}</p></div>
+          <div><h3>Raters Who Responded</h3><p class="raters-list">Self: 1<br>Manager: 1<br>Supporters: ${data.supporters.length}</p></div>
+        </div>
+        <div class="cover-rating-scale">
+          <h3>Rating Scale</h3>
+          ${[1,2,3,4,5].map(n => `<div class="scale-row"><div class="num n${n}">${n}</div><div class="label-name">${SCALE_LABELS[n]}</div><div>${ratingDescription(n)}</div></div>`).join('')}
+        </div>
+      </div>
+      <div class="cover-footer">Confidential — For Participant Use Only</div>
+    </div>
+  </section>`;
+}
+
+function ratingDescription(n) {
+  return {
+    1: 'Behavior is seldom or never observed',
+    2: 'Behavior appears inconsistently; needs significant work',
+    3: 'Behavior is developing; not yet consistent',
+    4: 'Behavior is demonstrated reliably; minor gaps may remain',
+    5: 'Clear, consistent strength across situations'
+  }[n];
+}
+
+function renderHowToRead(meta) {
+  return `
+  <section class="sheet">
+    <div class="sheet-tab">How to Read This Report</div>
+    <div class="sheet-body">
+      <div class="section-header first">How to Read This Report</div>
+      <div class="lead-paragraph">This report summarizes feedback from <strong>${escapeHtml(meta.reportRound)}</strong>. It shows how you, your manager, and your supporters rated your demonstration of the eight Crescent Leader Competencies, as well as Emotional Intelligence (EQ), for a total of nine measured areas. Manager feedback is shown separately; supporters are combined as one group.</div>
+      <div class="sub-header">How Competencies Are Classified</div>
+      <div class="classification-grid">
+        <div class="class-card strength"><h4>Strength</h4><div class="threshold">OTHERS' AVERAGE &gt; 4.0</div><p>Others consistently observe this behavior at a high level. This is a recognized capability you can rely on and build from.</p></div>
+        <div class="class-card developing"><h4>Developing</h4><div class="threshold">OTHERS' AVERAGE 3.0 – 4.0</div><p>This competency is developing. Others see it sometimes, but not always consistently. Question-level scores can help identify the behaviors driving the pattern.</p></div>
+        <div class="class-card focus"><h4>Focus Area</h4><div class="threshold">OTHERS' AVERAGE &lt; 3.0</div><p>Others rarely observe this behavior. These areas may be limiting leadership impact and are useful to prioritize for development.</p></div>
+      </div>
+      <div class="sub-header">Your Three-Round Journey</div>
+      <div class="journey">
+        <div class="journey-step"><div class="num">ROUND 1</div><div class="text">Establish your starting point across all 9 competencies.</div></div>
+        <div class="journey-step"><div class="num">ROUND 2</div><div class="text">Measure growth after completing the leadership development program.</div></div>
+        <div class="journey-step"><div class="num">ROUND 3</div><div class="text">Assess sustained behavior several months after the program.</div></div>
+      </div>
+      <div class="sub-header">Understanding Gap Scores</div>
+      <p style="font-size:12.5px; color:var(--gray-700); margin:6px 0 0 0;">A gap score is the difference between how you rated yourself and how others rated you. Others' Average includes the manager and supporters.</p>
+      <div class="gap-formula">Gap = Self Score − Others' Average</div>
+      <table class="gap-table">
+        <thead><tr><th style="width:130px;">Gap Range</th><th>What It Means</th><th style="width:140px;">Gap Type</th></tr></thead>
+        <tbody>
+          <tr><td><strong>+1.0 or more</strong></td><td>You rated yourself notably higher than your raters. Explore what behaviors others may not be observing.</td><td><span class="badge badge-blindspot">Blind Spot</span></td></tr>
+          <tr><td><strong>+0.5 to +0.9</strong></td><td>Moderate self-other difference; worth watching. Reflect on specific situations where this competency shows up.</td><td><span class="badge badge-watch">Watch Area</span></td></tr>
+          <tr><td><strong>−0.5 to +0.5</strong></td><td>Your self rating is generally aligned with how others rate you.</td><td><span class="badge badge-aligned">Aligned</span></td></tr>
+          <tr><td><strong>−0.5 or less</strong></td><td>Others rate you higher than you rate yourself. Consider whether you are underselling a genuine strength.</td><td><span class="badge badge-hidden">Hidden Strength</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>`;
+}
+
+function renderOverallSummary(meta, data, stats, compRows) {
+  return `
+  <section class="sheet summary-page">
+    <div class="sheet-tab">Overall Summary</div>
+    <div class="sheet-body">
+      <div class="section-header first">Overall Summary — ${escapeHtml(meta.leaderName)}</div>
+      <div class="avg-boxes">
+        <div class="avg-box overall"><div class="label">Others' Average</div><div class="value">${fmt(stats.othersAvg)}<span class="value-suffix"> / 5</span></div></div>
+        <div class="avg-box"><div class="label">Self Average</div><div class="value">${fmt(stats.selfAvg)}<span class="value-suffix"> / 5</span></div></div>
+        <div class="avg-box"><div class="label">Manager Average</div><div class="value">${fmt(stats.managerAvg)}<span class="value-suffix"> / 5</span></div></div>
+        <div class="avg-box"><div class="label">Supporters Average</div><div class="value">${fmt(stats.supportersAvg)}<span class="value-suffix"> / 5</span></div></div>
+        <div class="avg-box"><div class="label">Others' N/A Rate</div><div class="value">${stats.naRate === null ? '—' : Math.round(stats.naRate * 100)}<span class="value-suffix">%</span></div></div>
+      </div>
+      <div class="quick-view-grid">
+        <div class="chart-card">
+          <div class="chart-title">Competency Radar — Self, Manager, Supporters</div>
+          <div class="chart-note">A quick visual comparison across the nine competencies.</div>
+          ${renderRadar(compRows)}
+          <div class="legend-inline"><div class="key"><span class="dot" style="background:var(--crescent-blue)"></span>Self</div><div class="key"><span class="dot" style="background:var(--light-blue)"></span>Manager</div><div class="key"><span class="dot" style="background:var(--gold)"></span>Supporters</div></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Others' Average by Competency</div>
+          <div class="chart-note">Sorted in report order. Bars are scaled to 5.0. The full averages table now begins on the next page for cleaner PDF printing.</div>
+          ${compRows.map(row => renderMiniBar(row.comp.name, row.stats.othersAvg)).join('')}
+        </div>
+      </div>
+    </div>
+  </section>`;
+}
+
+function renderCompetencyAveragesPage(meta, compRows) {
+  return `
+  <section class="sheet competency-averages-page">
+    <div class="sheet-tab">Averages by Competency</div>
+    <div class="sheet-body">
+      <div class="section-header first">Averages by Competency — ${escapeHtml(meta.leaderName)}</div>
+      <div class="lead-paragraph">This table provides the detailed competency averages that support the Overall Summary. Others' Average includes the manager and supporters.</div>
+      <table class="striped">
+        <thead><tr><th>Competency</th><th class="num">Self</th><th class="num">Manager</th><th class="num">Supporters</th><th class="num">Others' Avg</th><th class="num">Gap</th><th class="num">N/A</th><th>Gap Type</th><th>Rating</th></tr></thead>
+        <tbody>
+          ${compRows.map(row => `<tr><td><strong>${escapeHtml(row.comp.name)}</strong></td><td class="num">${fmt(row.stats.selfAvg)}</td><td class="num">${fmt(row.stats.mgrAvg)}</td><td class="num">${fmt(row.stats.supAvg)}</td><td class="num">${fmt(row.stats.othersAvg)}</td><td class="num">${fmtGap(row.stats.gap)}</td><td class="num">${row.stats.naRate === null ? '—' : Math.round(row.stats.naRate*100)+'%'}</td><td><span class="badge ${row.stats.gapType.cls}">${row.stats.gapType.label}</span></td><td><span class="badge ${row.stats.rating.cls}">${row.stats.rating.label}</span></td></tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  </section>`;
+}
+
+function renderDevelopmentPrioritiesPage(meta, compRows) {
+  const sorted = [...compRows]
+    .filter(row => row.stats.othersAvg !== null)
+    .sort((a,b) => a.stats.othersAvg - b.stats.othersAvg)
+    .slice(0,3);
+  return `<section class="sheet">
+    <div class="sheet-tab">Top 3 Development Priorities</div>
+    <div class="sheet-body">
+      <div class="section-header first">Top 3 Development Priorities — ${escapeHtml(meta.leaderName)}</div>
+      <div class="lead-paragraph">Priorities are determined by the lowest Others' Average across the nine competencies. Use this page as a focused planning aid for reflection, coaching conversations, and selecting targeted learning paths.</div>
+      ${sorted.length ? sorted.map((row, idx) => renderPriorityCard(row.comp, row.stats, idx, meta)).join('') : '<p class="empty-comment">No priorities could be calculated because no others ratings were available.</p>'}
+    </div>
+  </section>`;
+}
+
+function renderMiniBar(label, value) {
+  const width = value === null ? 0 : Math.max(0, Math.min(100, value / 5 * 100));
+  return `<div class="bar-row"><div class="bar-label" title="${escapeHtml(label)}">${escapeHtml(label)}</div><div class="bar-track"><div class="bar-fill" style="width:${width}%"></div></div><div class="bar-value">${fmt(value,1)}</div></div>`;
+}
+
+function renderRadar(compRows) {
+  const cx = 220, cy = 180, r = 125;
+  const axes = compRows.length;
+  const pointFor = (idx, val) => {
+    const angle = -Math.PI/2 + (2 * Math.PI * idx / axes);
+    const radius = val === null ? 0 : (val / 5) * r;
+    return [cx + Math.cos(angle) * radius, cy + Math.sin(angle) * radius];
+  };
+  const axisEnd = idx => pointFor(idx, 5);
+  const poly = vals => vals.map((v, idx) => pointFor(idx, v).map(n => n.toFixed(1)).join(',')).join(' ');
+  const selfVals = compRows.map(row => row.stats.selfAvg);
+  const mgrVals = compRows.map(row => row.stats.mgrAvg);
+  const supVals = compRows.map(row => row.stats.supAvg);
+  const rings = [1,2,3,4,5].map(level => {
+    const radius = (level/5)*r;
+    const pts = Array.from({length: axes}, (_, idx) => {
+      const angle = -Math.PI/2 + (2 * Math.PI * idx / axes);
+      return `${(cx + Math.cos(angle)*radius).toFixed(1)},${(cy + Math.sin(angle)*radius).toFixed(1)}`;
+    }).join(' ');
+    return `<polygon points="${pts}" fill="none" stroke="${level === 5 ? '#C8C8C8' : '#E0E0E0'}" stroke-width="1" />`;
+  }).join('');
+  const axisLines = compRows.map((row, idx) => {
+    const [x,y] = axisEnd(idx);
+    const angle = -Math.PI/2 + (2 * Math.PI * idx / axes);
+    const lx = cx + Math.cos(angle) * (r + 26);
+    const ly = cy + Math.sin(angle) * (r + 26);
+    const short = row.comp.name.replace('Performance Management & Coaching','Performance').replace('Cross-Functional Ownership','Cross-Functional').replace('Mentoring Across the Organization','Mentoring').replace('Ethics & Compliance','Ethics').replace('Driving Accountability','Accountability').replace('Emotional Intelligence','EQ');
+    return `<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#E0E0E0" />
+      <text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="middle" dominant-baseline="middle" font-size="10" fill="#4A4A4A" font-weight="700">${escapeHtml(short)}</text>`;
+  }).join('');
+  return `<svg viewBox="0 0 440 360" width="100%" height="315" role="img" aria-label="Radar chart showing Self, Manager, and Supporters averages by competency">
+    ${rings}${axisLines}
+    <polygon points="${poly(selfVals)}" fill="rgba(0,40,86,.14)" stroke="#002856" stroke-width="2" />
+    <polygon points="${poly(mgrVals)}" fill="rgba(60,111,169,.12)" stroke="#3C6FA9" stroke-width="2" />
+    <polygon points="${poly(supVals)}" fill="rgba(201,167,0,.12)" stroke="#C9A700" stroke-width="2" />
+  </svg>`;
+}
+
+function renderPriorityCard(comp, stats, index, meta) {
+  const labels = ['HIGH FOCUS — LOWEST OTHERS\' AVG', 'MODERATE FOCUS — SECOND LOWEST', 'WATCH AREA — THIRD LOWEST'];
+  return `<div class="priority-card">
+    <div class="priority-header"><div class="num">${index+1}</div><div><div class="label">Priority ${index+1}</div><div style="font-size:11px;color:rgba(255,255,255,.85);">${labels[index]}</div></div><div class="name">${escapeHtml(comp.name)}</div></div>
+    <div class="priority-body"><div><div class="col-label">Definition</div><div class="definition">${escapeHtml(comp.definition)}</div></div><div><div class="col-label">Scores</div><div class="scores"><div><span class="lbl">Self</span><span class="val">${fmt(stats.selfAvg)}</span></div><div><span class="lbl">Manager</span><span class="val">${fmt(stats.mgrAvg)}</span></div><div><span class="lbl">Supporters</span><span class="val">${fmt(stats.supAvg)}</span></div><div><span class="lbl">Others</span><span class="val">${fmt(stats.othersAvg)}</span></div></div></div><div><div class="col-label">Suggested Learning Path</div><div class="lp">${renderLearningPath(comp, meta)}</div></div></div>
+  </div>`;
+}
+
+function renderItemLevelPage(meta, data, comps, title) {
+  return `<section class="sheet">
+    <div class="sheet-tab">${escapeHtml(title)}</div>
+    <div class="sheet-body">
+      <div class="section-header first">${escapeHtml(title)}</div>
+      <div class="lead-paragraph">This view shows the distribution of <strong>manager + supporter</strong> responses for each question. The row label includes your self score as <strong>S:X</strong>. “N/A” reflects ratings that were blank or marked unable to observe.</div>
+      ${renderStackLegend()}
+      ${comps.map(comp => `<div class="sub-header">${escapeHtml(comp.name)}</div>${Array.from({length: comp.qEnd - comp.qStart + 1}, (_, idx) => renderStackedQuestionRow(comp.qStart + idx, comp.questions[idx], data)).join('')}`).join('')}
+    </div>
+  </section>`;
+}
+
+function renderStackLegend() {
+  return `<div class="stack-legend"><strong style="color:var(--crescent-blue);">Scale:</strong>
+    ${[1,2,3,4,5].map(n => `<div class="key"><span class="swatch" style="background:var(--likert-${n})"></span>${n} · ${SCALE_LABELS[n]}</div>`).join('')}
+  </div>`;
+}
+
+function renderStackedQuestionRow(qNumber, questionText, data) {
+  const stats = questionStats(qNumber - 1, data);
+  const bar = stats.valid ? stats.distPct.map((pct, idx) => pct > 0 ? `<div class="seg s${idx+1}" style="width:${pct}%" title="${idx+1}: ${stats.dist[idx]} response(s)">${pct >= 12 ? Math.round(pct) + '%' : ''}</div>` : '').join('') : '<div class="seg s3" style="width:100%">No ratings</div>';
+  const selfText = stats.self === null || stats.self === undefined ? '—' : stats.self;
+  const naText = stats.missing ? `${stats.missing} N/A` : '0 N/A';
+  return `<div class="stack-row"><div class="stack-q">Q${qNumber}<span class="self-tag">S:${selfText}</span></div><div class="stack-text">${escapeHtml(questionText)}</div><div class="stack-bar">${bar}</div><div class="stack-meta">Avg ${fmt(stats.othersAvg,1)}<br>${escapeHtml(naText)}</div></div>`;
+}
+
+function renderCompetencyPage(meta, data, comp) {
+  const stats = compStats(comp, data);
+  const ratingCardClass = `r-${stats.rating.card}`;
+  const gapCardClass = `gap-${stats.gapType.card}`;
+  const qRows = Array.from({length: comp.qEnd - comp.qStart + 1}, (_, idx) => renderQuestionBars(comp.qStart + idx, comp.questions[idx], data)).join('');
+  return `<section class="sheet competency-page">
+    <div class="sheet-tab">${escapeHtml(comp.name)}</div>
+    <div class="sheet-body">
+      <div class="section-header first">${escapeHtml(comp.name)}</div>
+      <div class="comp-summary">
+        <div class="comp-explainer"><strong>About this view:</strong> The ratings below show how each rater group scored you on a 1–5 scale for each behavior in this competency. Compare bars across rater groups to identify where perceptions are aligned and where they differ.</div>
+        <div class="comp-stats"><div class="comp-stat"><div class="label">Self</div><div class="value">${fmt(stats.selfAvg)}</div></div><div class="comp-stat"><div class="label">Manager</div><div class="value">${fmt(stats.mgrAvg)}</div></div><div class="comp-stat"><div class="label">Supporters</div><div class="value">${fmt(stats.supAvg)}</div></div><div class="comp-stat"><div class="label">Others' Avg</div><div class="value">${fmt(stats.othersAvg)}</div></div></div>
+      </div>
+      <div class="comp-rating-row">
+        <div class="comp-rating-card ${ratingCardClass}"><div class="label">Overall Rating</div><div class="value">${stats.rating.label}</div><div style="font-size:11px;color:var(--gray-700);margin-top:4px;">Others' Average: <strong>${fmt(stats.othersAvg)}</strong></div></div>
+        <div class="comp-rating-card ${gapCardClass}"><div class="label">Gap Type</div><div class="value">${stats.gapType.label}</div><div style="font-size:11px;color:var(--gray-700);margin-top:4px;">Self − Others = <strong>${fmtGap(stats.gap)}</strong></div></div>
+        <div class="comp-rating-card"><div class="label">Others' N/A Rate</div><div class="value">${stats.naRate === null ? '—' : Math.round(stats.naRate * 100) + '%'}</div><div style="font-size:11px;color:var(--gray-700);margin-top:4px;">${stats.nOthers} of ${stats.expectedOthers} ratings used</div></div>
+      </div>
+      <div class="sub-header">Question-Level Detail</div>
+      <div class="comp-legend"><strong style="color:var(--crescent-blue);">Legend:</strong><div class="key"><span class="dot" style="background:var(--crescent-blue);"></span>Self</div><div class="key"><span class="dot" style="background:var(--light-blue);"></span>Manager</div><div class="key"><span class="dot" style="background:var(--gold);"></span>Supporters Avg</div><div class="key"><span class="dot" style="background:var(--accent-positive);"></span>Others Avg</div><div style="margin-left:auto;font-size:11px;color:var(--gray-500);">Bars are scaled 1–5.</div></div>
+      ${qRows}
+      <div class="comp-excellent"><h4>What “Excellent” Looks Like in ${escapeHtml(comp.name)}</h4><ul>${comp.excellent.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul></div>
+      ${renderCompetencyAdditionalResources(comp, meta)}
+    </div>
+  </section>`;
+}
+
+function renderQuestionBars(qNumber, qText, data) {
+  const stats = questionStats(qNumber - 1, data);
+  const width = v => v === null || v === undefined ? 0 : Math.max(0, Math.min(100, v / 5 * 100));
+  const row = (label, value, cls) => `<div class="qbar-row"><div class="qbar-label">${label}</div><div class="qbar-track"><div class="qbar-fill ${cls}" style="width:${width(value)}%;"></div>${[1,2,3,4].map(t => `<div class="axis-tick" style="left:${(t/5)*100}%"></div>`).join('')}</div><div class="qbar-value">${fmt(value, label === 'Self' || label === 'Manager' ? 0 : 1)}</div></div>`;
+  return `<div class="qbar-block"><div class="qbar-question"><span class="qnum">Q${qNumber}</span>${escapeHtml(qText)}</div>${row('Self', stats.self, 'self')}${row('Manager', stats.manager, 'manager')}${row('Supporters', stats.supportersAvg, 'support')}${row('Others', stats.othersAvg, 'others')}</div>`;
+}
+
+function renderOpenTextPage(meta, data) {
+  const groupComments = (index) => {
+    const self = data.self.comments[index] ? `<div class="quote-group-label">From Self</div><div class="quote">${escapeHtml(data.self.comments[index])}</div>` : '';
+    const manager = data.manager.comments[index] ? `<div class="quote-group-label">From Manager</div><div class="quote">${escapeHtml(data.manager.comments[index])}</div>` : '';
+    const supporters = data.supporters.map((s, i) => s.comments[index] ? `<div class="quote">${escapeHtml(s.comments[index])}</div>` : '').filter(Boolean).join('');
+    const supporterBlock = supporters ? `<div class="quote-group-label">From Supporters</div>${supporters}` : '';
+    return self + manager + supporterBlock || '<p class="empty-comment">No comments provided for this question.</p>';
+  };
+  return `<section class="sheet">
+    <div class="sheet-tab">Open-Text Feedback</div>
+    <div class="sheet-body">
+      <div class="section-header first">Open-Text Feedback — ${escapeHtml(meta.leaderName)}</div>
+      <div class="lead-paragraph">Comments are presented as entered and grouped by rater type. Supporter comments are not attributed to individual respondents in the report narrative.</div>
+      ${OPEN_QUESTIONS.map((q, idx) => `<div class="feedback-question">Q${28+idx} · ${escapeHtml(q)}</div><div class="quote-list">${groupComments(idx)}</div>`).join('')}
+    </div>
+  </section>`;
+}
+
+function exportStandaloneHtml() {
+  if (!currentReportState) { showStatus('Generate a report before exporting HTML.', 'error'); return; }
+  const meta = currentReportState.meta;
+  const css = document.getElementById('report-styles').textContent;
+  const report = document.getElementById('reportContainer').innerHTML;
+  const html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>360 ${meta.reportVersion === 'condensed' ? 'Condensed ' : ''}Feedback Report - ${escapeHtml(meta.leaderName)}</title><style>${css}\n.app-shell,.report-toolbar{display:none!important}.report-container{display:block!important}</style></head><body class="report-only"><main class="report-container show">${report}</main></body></html>`;
+  const versionSlug = meta.reportVersion === 'condensed' ? 'condensed-' : '';
+  downloadBlob(html, `${slug(meta.leaderName)}-360-${versionSlug}feedback-report.html`, 'text/html;charset=utf-8');
+}
+
+function exportInputJson() {
+  const payload = {
+    meta: getFormMeta(),
+    ratingsPaste: document.getElementById('ratingsPaste').value
+  };
+  downloadBlob(JSON.stringify(payload, null, 2), `${slug(payload.meta.leaderName)}-360-input.json`, 'application/json;charset=utf-8');
+}
+
+function importInputJson(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const payload = JSON.parse(reader.result);
+      if (payload.meta) {
+        document.getElementById('leaderName').value = payload.meta.leaderName || '';
+        document.getElementById('roleTitle').value = payload.meta.roleTitle || '';
+        document.getElementById('supporterCount').value = String(payload.meta.supporterCount || 1);
+        updateRaterTypeGuide();
+        document.getElementById('surveyWindow').value = payload.meta.surveyWindow || '';
+        document.getElementById('reportRound').value = payload.meta.reportRound || '';
+        document.getElementById('reportVersion').value = payload.meta.reportVersion || 'full';
+        applyLearningPathLinkMap(payload.meta.learningPathLinks || payload.meta.learningPathUrls || {});
+      }
+      document.getElementById('ratingsPaste').value = payload.ratingsPaste || '';
+      showStatus('JSON input imported.', 'ok');
+    } catch (error) {
+      showStatus('Could not import JSON. Check that the file came from this generator.', 'error');
+    } finally {
+      event.target.value = '';
+    }
+  };
+  reader.readAsText(file);
+}
+
+function downloadBlob(content, filename, mimeType) {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>
